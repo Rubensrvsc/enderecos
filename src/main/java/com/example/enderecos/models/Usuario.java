@@ -1,5 +1,6 @@
 package com.example.enderecos.models;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -45,23 +46,22 @@ public class Usuario {
 
     @Column(nullable = false )
     @Past
-    @NotBlank
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private Date data_nascimento;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "usuario", fetch = FetchType.LAZY)
-    private List<Endereco> endereco;
+    private List<Endereco> enderecos;
 
     public Usuario() {
     }
 
     @JsonManagedReference
-    public List<Endereco> getEndereco() {
-        return this.endereco;
+    public List<Endereco> getEnderecos() {
+        return this.enderecos;
     }
 
-    public void setEndereco(List<Endereco> endereco) {
-        this.endereco = endereco;
+    public void setEnderecos(List<Endereco> enderecos) {
+        this.enderecos = enderecos;
     }
     
 

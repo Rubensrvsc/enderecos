@@ -41,7 +41,7 @@ public class EnderecoService {
         
         endereco.setUsuario(user.get());
         enderecoRepository.save(endereco);
-        user.get().getEndereco().add(endereco);
+        user.get().getEnderecos().add(endereco);
 
         usuarioRepository.save(user.get());
         return new ResponseEntity<>(endereco,HttpStatus.CREATED);
