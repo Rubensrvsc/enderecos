@@ -20,7 +20,15 @@ Hibernate Validator - Responsável pela validação da entrada dos dados
 
 ##### De posse do driver de conexão do Mysql é necessário indicar para o spring no arquivo application.properties o local do banco de dados, nome do banco de dados, usuário, senha e o dialeto que a pessoa está usando
 
-![Conexão com o banco de dados](https://github.com/Rubensrvsc/enderecos/blob/main/imagens/banco_de_dados.png)
+
+```
+spring.datasource.url=jdbc:mysql://localhost:3306/springapi?useSSL=false
+spring.datasource.username=root
+spring.datasource.password=root
+
+spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.MySQL5InnoDBDialect
+spring.jpa.hibernate.ddl-auto = update
+```
 
 #### Criando os models
 
@@ -28,7 +36,42 @@ Hibernate Validator - Responsável pela validação da entrada dos dados
 
 ##### O primeiro modelo a ser visto é o do Usuário que tem os atributos nome_usuário,email, cpf, data_nascimento e endereco
 
-![Tabela de Usuario](https://github.com/Rubensrvsc/enderecos/blob/main/imagens/tabela_usuario.png)
+~~~java
+
+@Entity
+public class Usuario {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
+
+    @Column(nullable = false)
+    @NotBlank
+    private String nome_usuario;
+
+    @Column(nullable = false,unique = true)
+    @Email(message = "Coloque um email válido")
+    @NotBlank
+    private String email;
+
+    @Column(nullable = false,unique = true)
+    @NotBlank
+    private String cpf;
+
+    @Column(nullable = false )
+    @Past
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private Date data_nascimento;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "usuario", fetch = FetchType.LAZY)
+    private List<Endereco> enderecos;
+    
+    @JsonManagedReference
+    public List<Endereco> getEnderecos() {
+        return this.enderecos;
+    }
+
+~~~
 
 ##### Você já deve ter percebido vários nomes com o símbolo @ antes da palavra. Isso se annotations recurso utilizado pelo Spring para indicar que aquele componente Java vai ter algo a mais sobre ele, como por exemplo um atributo não poder receber valores nulos. Abaixo é explicado cada annotation utilizado na classe Usuário
 
@@ -45,7 +88,53 @@ Hibernate Validator - Responsável pela validação da entrada dos dados
 
 ##### Agora é mostrado a classe Endereco que tem os atributos logradouro, numero, complemento, bairro, cidade, estado, usuario
 
-![Tabela de Usuario](https://github.com/Rubensrvsc/enderecos/blob/main/imagens/tabela_endereco.png)
+~~~java
+
+@Entity
+public class Endereco {
+
+    @Id
+    @GeneratedValue( strategy = GenerationType.IDENTITY)
+    private long id;
+
+    @Column(nullable = false)
+    @NotBlank
+    private String logradouro;
+
+    @Column(nullable = false)
+    @NotBlank
+    private String numero;
+
+    @Column(nullable = false)
+    @NotBlank
+    private String complemento;
+
+    @Column(nullable = false)
+    @NotBlank
+    private String bairro;
+
+    @Column(nullable = false)
+    @NotBlank
+    private String cidade;
+
+    @Column(nullable = false)
+    @NotBlank
+    private String estado;
+
+    @Column(nullable = false)
+    @NotBlank
+    private String cep;
+
+    @ManyToOne
+    @JoinColumn(name = "usuario_id")
+    private Usuario usuario;
+    
+    @JsonBackReference
+    public Usuario getUsuario() {
+        return this.usuario;
+    }
+
+~~~
 
 ##### As annotations mais relevantes nessa classe são:
 
