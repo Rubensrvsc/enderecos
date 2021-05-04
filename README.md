@@ -141,3 +141,33 @@ public class Endereco {
 * **@ManyToOne** - Annotation de relacionamento da classe Endereco com a classe Usuario indicando que um endereço pertence a um único usuario
 * **@JoinColumn** - Indica ao JPA o id da classe usuario que a classe endereco terá que ser relacionada
 * **@JsonBackReference** - Utilizada para gerenciar a referência do atributo usuario na classe Endereco
+
+#### Repository
+
+##### Após a construção dos models temos que dizer que o model vai ser gerenciado pelo Spring JPA como explicitado abaixo
+
+##### O código acima tem como objetivo indicar que as classes vão ser gerenciadas pelo Spring JPA e para isso precisamos fazer algumas alterações no código
+
+* **@Respository** - Essa annotation indica para o spring que essa classe se torna gerenciável pelo Spring, comumente conhecido como Bean
+* **JpaRepository** - Para obter os métodos comuns para manipular banco de dados é necessário extender a classe  JpaRepository e dizer qual classe é para a interface gerenciar
+
+##### Além do que foi explicitado foi necessário escrever duas consutas personalizadas para encontrar o email, cpf e id de um usuário como demostrado no métodos **findByEmailAllIgnoreCase(String email)**, **findByCpfAllIgnoreCase(String cpf)** e **getById(Long id)**.
+
+#### Services
+
+##### A camada service tem a responsabilidade de fazer os tratamentos necessários antes que seja feita uma operação no banco de dados como evidenciado no código abaixo na classe UsuarioService
+
+* **@Service** - A annotation service indica para Spring gerenciar essa classe
+* **@Autowired** - Já a annotation @Autowired evidência um das principais qualidades do Spring, a injeção de depêndencia, com essa annotation não precisamos instanciar a classe usuarioRepository
+
+####### A primeira função é a de **save(Usuario usuario)** que tem como objetivo salvar um novo usuário. A função recebe um objeto do tipo Usuario e caso já exista um cpf ou email a funcão retorna o erro 400 com uma mensagem que mostre para o cliente o porquê do erro.
+
+####### A segunda função é **findById(Long id)** com o objetivo de encontrar um usuário e retornar ele com todos os endereços que foram atribuidos a ele. Caso ele não encontre o usuário é retornado o código 404 com uma mensagem de erro
+
+##### Abaixo é possível ver a class EnderecoService
+
+####### Essa classe já vem com as annotations descritas **@Service** e **@Autowired** e com a função **cadastrar_endereco(Long id,Endereco endereco)**. Essa função recebe como parâmteros o id do usuário e um endereço e tem como objetivo relacionar o endereço ao usuário. Caso o endereço e o usuário estejam corretos é adicionado um endereço ao atributo enderecos do usuário encontrado, já que o método save do JpaRepository apenas atualiza um registro já existente, e retornado o endereço com o código 201. Caso o usuário não seja encontrado é retornado o erro 404 e uma mensagem.
+
+#### Controllers
+
+##### Os controllers são as classes que de fato vão receber as informações do cliente e que tem os endereços que podem ser acessados pelo navegador. O sistema tem dois arquivos de controllers o UsuarioController e o EnderecoController. Abaixo é mostrada o UsuarioController
