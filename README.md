@@ -171,3 +171,19 @@ public class Endereco {
 #### Controllers
 
 ##### Os controllers são as classes que de fato vão receber as informações do cliente e que tem os endereços que podem ser acessados pelo navegador. O sistema tem dois arquivos de controllers o UsuarioController e o EnderecoController. Abaixo é mostrada o UsuarioController
+
+##### As principais annotations desse controller são
+
+* **@RestController** - Essa annotation indica ao Spring que a classe faz parte de uma RestApi
+* **@RequestMapping** - Essa annotation diz ao Spring a raiz de enderaçamento dos métodos da classe
+* **@PostMapping** - Esta annotation indica que o método vai fazer o método HTTP POST juntamente com endereço que o método deve ser invocado
+* **@GetMapping** - Esta annotation indica que o método vai fazer o método HTTP GET juntamente com endereço que o método deve ser invocado
+
+####### Os dois métodos do controller são o **postUsuario(@Valid @RequestBody Usuario usuario)**, que recebe uma instância de um Usuario e enviar para o service salvar o usuário no banco de dados. Já o segundo método é o **getUserById(@PathVariable(value = "id") Long id)** onde é recebido um identificador e assim é retornado o usuário que tem o identificador enviado pelo método como parâmetro.
+
+
+##### Abaixo é mostrado o EnderecoController
+
+####### Nesse controller tem apenas o método **postUsuarioEndereco(@PathVariable(value = "id") Long id,@RequestBody Endereco endereco)** que recebe o identificador de um usuário e uma instância da classe Endereco e manda para o service relacionar o endereço ao usuário pertencente ao identificador
+
+
