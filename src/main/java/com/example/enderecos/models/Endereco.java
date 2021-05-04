@@ -7,6 +7,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.validation.constraints.NotBlank;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
@@ -18,24 +19,31 @@ public class Endereco {
     private long id;
 
     @Column(nullable = false)
+    @NotBlank
     private String logradouro;
 
     @Column(nullable = false)
+    @NotBlank
     private String numero;
 
     @Column(nullable = false)
+    @NotBlank
     private String complemento;
 
     @Column(nullable = false)
+    @NotBlank
     private String bairro;
 
     @Column(nullable = false)
+    @NotBlank
     private String cidade;
 
     @Column(nullable = false)
+    @NotBlank
     private String estado;
 
     @Column(nullable = false)
+    @NotBlank
     private String cep;
 
     @ManyToOne
@@ -117,9 +125,5 @@ public class Endereco {
     public void setUsuario(Usuario usuario) {
         this.usuario = usuario;
     }
-
-
-
-
-    
+   
 }

@@ -14,6 +14,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Past;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -30,17 +31,21 @@ public class Usuario {
     private long id;
 
     @Column(nullable = false)
+    @NotBlank
     private String nome_usuario;
 
     @Column(nullable = false,unique = true)
     @Email(message = "Coloque um email válido")
+    @NotBlank
     private String email;
 
     @Column(nullable = false,unique = true)
+    @NotBlank
     private String cpf;
 
     @Column(nullable = false )
     @Past
+    @NotBlank
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date data_nascimento;
 
