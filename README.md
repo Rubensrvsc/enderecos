@@ -70,6 +70,17 @@ public class Usuario {
     public List<Endereco> getEnderecos() {
         return this.enderecos;
     }
+    
+    public Map<String,String> objeto() {
+        Map<String,String> model = new HashMap<String,String>();
+        model.put("Nome", this.nome_usuario);
+        model.put("Email", this.email);
+        model.put("Cpf", this.cpf);
+        model.put("Data de Nascimento", this.data_nascimento.toString());
+        return model;
+    }
+    
+    // getters e setters
 
 ~~~
 
@@ -133,7 +144,8 @@ public class Endereco {
     public Usuario getUsuario() {
         return this.usuario;
     }
-
+    
+    // getters e setters
 ~~~
 
 ##### As annotations mais relevantes nessa classe são:
@@ -146,31 +158,123 @@ public class Endereco {
 
 ##### Após a construção dos models temos que dizer que o model vai ser gerenciado pelo Spring JPA como explicitado abaixo
 
+~~~java
+@Repository
+public interface UsuarioRepository extends JpaRepository<Usuario,Long>{
+    Usuario getById(Long id);
+
+    Optional<Usuario> findByEmailAllIgnoreCase(String email);
+
+    Optional<Usuario> findByCpfAllIgnoreCase(String cpf);
+}
+
+~~~
+
+~~~java
+@Repository
+public interface EnderecoRepository extends JpaRepository<Endereco,Long>{
+    
+}
+~~~
+
 ##### O código acima tem como objetivo indicar que as classes vão ser gerenciadas pelo Spring JPA e para isso precisamos fazer algumas alterações no código
 
 * **@Respository** - Essa annotation indica para o spring que essa classe se torna gerenciável pelo Spring, comumente conhecido como Bean
 * **JpaRepository** - Para obter os métodos comuns para manipular banco de dados é necessário extender a classe  JpaRepository e dizer qual classe é para a interface gerenciar
 
-##### Além do que foi explicitado foi necessário escrever duas consutas personalizadas para encontrar o email, cpf e id de um usuário como demostrado no métodos **findByEmailAllIgnoreCase(String email)**, **findByCpfAllIgnoreCase(String cpf)** e **getById(Long id)**.
+##### Além do que foi explicitado foi necessário escrever três consutas personalizadas na classe UsuarioRepository para encontrar o email, cpf e id de um usuário como demostrado no métodos **findByEmailAllIgnoreCase(String email)**, **findByCpfAllIgnoreCase(String cpf)** e **getById(Long id)**.
 
 #### Services
 
 ##### A camada service tem a responsabilidade de fazer os tratamentos necessários antes que seja feita uma operação no banco de dados como evidenciado no código abaixo na classe UsuarioService
 
+~~~java
+@Service
+public class UsuarioService {
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private EnderecoRepository enderecoRepository;
+
+    public ResponseEntity<?> save(Usuario usuario){
+        Optional<Usuario> user_cpf = usuarioRepository.findByCpfAllIgnoreCase(usuario.getCpf());
+        Optional<Usuario> user_email = usuarioRepository.findByEmailAllIgnoreCase(usuario.getEmail());
+ 
+        if(user_cpf.isPresent()){
+            Map<String,String> erro = new HashMap<String,String>();
+            erro.put("Erro", "CPF já existe");
+            return new ResponseEntity<>(erro,HttpStatus.BAD_REQUEST);
+        }
+        if(user_email.isPresent()){
+            Map<String,String> erro = new HashMap<String,String>();
+            erro.put("Erro", "Email já existe");
+            return new ResponseEntity<>(erro,HttpStatus.BAD_REQUEST);
+        }
+        usuarioRepository.save(usuario);
+
+        
+        return new ResponseEntity<>(usuario.objeto(),HttpStatus.CREATED);
+ 
+    }
+
+    public ResponseEntity<?> findById(Long id){
+        if (usuarioRepository.findById(id).isEmpty()){
+            Map<String,String> erro = new HashMap<String,String>();
+            erro.put("Erro", "Usuario não encontrado");
+            return new ResponseEntity<>(erro,HttpStatus.NOT_FOUND);
+        }
+        Optional<Usuario> user = usuarioRepository.findById(id);
+
+        return new ResponseEntity<>(user.get(),HttpStatus.OK);
+    }
+
+  
+}
+~~~
+
 * **@Service** - A annotation service indica para Spring gerenciar essa classe
 * **@Autowired** - Já a annotation @Autowired evidência um das principais qualidades do Spring, a injeção de depêndencia, com essa annotation não precisamos instanciar a classe usuarioRepository
 
-####### A primeira função é a de **save(Usuario usuario)** que tem como objetivo salvar um novo usuário. A função recebe um objeto do tipo Usuario e caso já exista um cpf ou email a funcão retorna o erro 400 com uma mensagem que mostre para o cliente o porquê do erro.
+A primeira função é a de **save(Usuario usuario)** que tem como objetivo salvar um novo usuário. A função recebe um objeto do tipo Usuario e caso já exista um cpf ou email a funcão retorna o erro 400 com uma mensagem que mostre para o cliente o porquê do erro.
 
-####### A segunda função é **findById(Long id)** com o objetivo de encontrar um usuário e retornar ele com todos os endereços que foram atribuidos a ele. Caso ele não encontre o usuário é retornado o código 404 com uma mensagem de erro
+A segunda função é **findById(Long id)** com o objetivo de encontrar um usuário e retornar ele com todos os endereços que foram atribuidos a ele. Caso ele não encontre o usuário é retornado o código 404 com uma mensagem de erro
 
 ##### Abaixo é possível ver a class EnderecoService
 
-####### Essa classe já vem com as annotations descritas **@Service** e **@Autowired** e com a função **cadastrar_endereco(Long id,Endereco endereco)**. Essa função recebe como parâmteros o id do usuário e um endereço e tem como objetivo relacionar o endereço ao usuário. Caso o endereço e o usuário estejam corretos é adicionado um endereço ao atributo enderecos do usuário encontrado, já que o método save do JpaRepository apenas atualiza um registro já existente, e retornado o endereço com o código 201. Caso o usuário não seja encontrado é retornado o erro 404 e uma mensagem.
+Essa classe já vem com as annotations descritas **@Service** e **@Autowired** e com a função **cadastrar_endereco(Long id,Endereco endereco)**. Essa função recebe como parâmteros o id do usuário e um endereço e tem como objetivo relacionar o endereço ao usuário. Caso o endereço e o usuário estejam corretos é adicionado um endereço ao atributo enderecos do usuário encontrado, já que o método save do JpaRepository apenas atualiza um registro já existente, e retornado o endereço com o código 201. Caso o usuário não seja encontrado é retornado o erro 404 e uma mensagem.
 
 #### Controllers
 
 ##### Os controllers são as classes que de fato vão receber as informações do cliente e que tem os endereços que podem ser acessados pelo navegador. O sistema tem dois arquivos de controllers o UsuarioController e o EnderecoController. Abaixo é mostrada o UsuarioController
+
+~~~java
+@RestController
+@RequestMapping(value = "/")
+public class UsuarioController {
+
+    @Autowired
+    private UsuarioService usuarioService;
+    
+
+    @PostMapping("")
+    public ResponseEntity<?> postUsuario(@Valid @RequestBody Usuario usuario){
+        return usuarioService.save(usuario);
+   
+    }
+
+
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getUserById(@PathVariable(value = "id") Long id){
+        return usuarioService.findById(id);
+    }
+
+  
+}
+
+~~~
 
 ##### As principais annotations desse controller são
 
@@ -179,11 +283,127 @@ public class Endereco {
 * **@PostMapping** - Esta annotation indica que o método vai fazer o método HTTP POST juntamente com endereço que o método deve ser invocado
 * **@GetMapping** - Esta annotation indica que o método vai fazer o método HTTP GET juntamente com endereço que o método deve ser invocado
 
-####### Os dois métodos do controller são o **postUsuario(@Valid @RequestBody Usuario usuario)**, que recebe uma instância de um Usuario e enviar para o service salvar o usuário no banco de dados. Já o segundo método é o **getUserById(@PathVariable(value = "id") Long id)** onde é recebido um identificador e assim é retornado o usuário que tem o identificador enviado pelo método como parâmetro.
+Os dois métodos do controller são o **postUsuario(@Valid @RequestBody Usuario usuario)**, que recebe uma instância de um Usuario e enviar para o service salvar o usuário no banco de dados. Já o segundo método é o **getUserById(@PathVariable(value = "id") Long id)** onde é recebido um identificador e assim é retornado o usuário que tem o identificador enviado pelo método como parâmetro.
 
 
 ##### Abaixo é mostrado o EnderecoController
 
-####### Nesse controller tem apenas o método **postUsuarioEndereco(@PathVariable(value = "id") Long id,@RequestBody Endereco endereco)** que recebe o identificador de um usuário e uma instância da classe Endereco e manda para o service relacionar o endereço ao usuário pertencente ao identificador
+~~~java
+@RestController
+@RequestMapping(value = "/")
+public class EnderecoController {
+
+    @Autowired
+    private EnderecoService enderecoService;
+
+    @PostMapping("/endereco/{id}")
+    public ResponseEntity<?> postUsuarioEndereco(@PathVariable(value = "id") Long id,@RequestBody Endereco endereco){
+        
+        return enderecoService.cadastrar_endereco(id, endereco);
+        
+    }
+    
+}
+~~~
+
+Nesse controller tem apenas o método **postUsuarioEndereco(@PathVariable(value = "id") Long id,@RequestBody Endereco endereco)** que recebe o identificador de um usuário e uma instância da classe Endereco e manda para o service relacionar o endereço ao usuário pertencente ao identificador
+
+#### EndPoints
+
+| Method |EndPoint | Description |
+|---|---|---|
+| POST | `http://localhost:8080/` | Cria um usuário |
+| GET | `http://localhost:8080/{id}` | Obtém um usuário no sistema |
+| PUT | `http://localhost:8080/flag_update/endereco/<int:id>` | Set flag in a survivor |
+
+#### Demonstração dos EndPoints
+
+##### Endpoint:
+
+- POST: `/`
+
++ Request
+
+            {
+                "nome_usuario":"luiz",
+                "email":"rubens@mail.com",
+                "cpf":"065.111.723-24",
+                "data_nascimento":"1999-01-01"
+
+            }
++ Response 201 CREATED
+
+      {
+                "nome_usuario":"luiz",
+                "email":"rubens@mail.com",
+                "cpf":"065.111.723-24",
+                "data_nascimento":"1999-01-01"
+
+            }
+           
+#### Endpoint:
+
+- GET: `/{id}/`
 
 
++ Response 200 OK
+
+      {
+        "id": 1,
+        "nome_usuario": "rubens",
+        "email": "rubens@mail.com",
+        "cpf": "062.111.723-24",
+        "data_nascimento": "1999-01-01",
+        "enderecos": [
+            {
+                "id": 1,
+                    "logradouro": "rua 1",
+                "numero": "3421",
+                "complemento": "perto da praça",
+                "bairro": "dirceu",
+                "cidade": "Teresina",
+                "estado": "Piaui",
+                "cep": "72262625"
+            },
+            {
+                "id": 2,
+                "logradouro": "rua 2",
+                "numero": "3421",
+                "complemento": "perto da praça",
+                "bairro": "dirceu",
+                "cidade": "Teresina",
+                "estado": "Piaui",
+                "cep": "444"
+            }
+        ]
+        }
+        
+##### Endpoint:
+
+- POST: `//endereco/{id}`
+
++ Request
+
+            {
+                "logradouro":"rua 1",
+                "numero":"3421",
+                "complemento":"perto da praça",
+                "bairro":"dirceu",
+                "cidade":"Teresina",
+                "estado":"Piaui",
+                "cep":"72262625"
+
+            }
++ Response 201 CREATED
+
+            {
+                "logradouro":"rua 1",
+                "numero":"3421",
+                "complemento":"perto da praça",
+                "bairro":"dirceu",
+                "cidade":"Teresina",
+                "estado":"Piaui",
+                "cep":"72262625"
+
+            }
+      
