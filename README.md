@@ -180,7 +180,7 @@ public interface EnderecoRepository extends JpaRepository<Endereco,Long>{
 ##### O código acima tem como objetivo indicar que as classes vão ser gerenciadas pelo Spring JPA e para isso precisamos fazer algumas alterações no código
 
 * **@Respository** - Essa annotation indica para o spring que essa classe se torna gerenciável pelo Spring, comumente conhecido como Bean
-* **JpaRepository** - Para obter os métodos comuns para manipular banco de dados é necessário extender a classe  JpaRepository e dizer qual classe é para a interface gerenciar
+* **@JpaRepository** - Para obter os métodos comuns para manipular banco de dados é necessário extender a classe  JpaRepository e dizer qual classe é para a interface gerenciar
 
 ##### Além do que foi explicitado foi necessário escrever três consutas personalizadas na classe UsuarioRepository para encontrar o email, cpf e id de um usuário como demostrado no métodos **findByEmailAllIgnoreCase(String email)**, **findByCpfAllIgnoreCase(String cpf)** e **getById(Long id)**.
 
@@ -380,7 +380,7 @@ Nesse controller tem apenas o método **postUsuarioEndereco(@PathVariable(value 
         
 ##### Endpoint:
 
-- POST: `//endereco/{id}`
+- POST: `/endereco/{id}`
 
 + Request
 
