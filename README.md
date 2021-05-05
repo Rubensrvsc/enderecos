@@ -314,7 +314,7 @@ Nesse controller tem apenas o método **postUsuarioEndereco(@PathVariable(value 
 |---|---|---|
 | POST | `http://localhost:8080/` | Cria um usuário |
 | GET | `http://localhost:8080/{id}` | Obtém um usuário no sistema |
-| PUT | `http://localhost:8080/flag_update/endereco/<int:id>` | Set flag in a survivor |
+| PUT | `http://localhost:8080/endereco/<int:id>` | Set flag in a survivor |
 
 #### Demonstração dos EndPoints
 
